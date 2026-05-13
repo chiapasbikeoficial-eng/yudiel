@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Cpu, Terminal, Wifi, Activity, ChevronRight, Radio, Network } from 'lucide-react';
 
 const interfaces = [
@@ -15,6 +15,34 @@ const processes = [
 ];
 
 export default function Sidebar() {
+  const [status, setStatus] = useState<Record<string, boolean>>({ 'wlan0': false, 'wlan0mon': true });
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const toggleMonitor = async (iface: string) => {
+    const isMonitor = iface.includes('mon');
+    const action = isMonitor ? 'stop' : 'start';
+    
+    setLoading(iface);
+    try {
+      const response = await fetch('/api/system/monitor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interface: iface, action })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStatus(prev => ({
+          ...prev,
+          [iface]: action === 'start'
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="w-64 bg-kali-panel border-r border-kali-border flex flex-col h-full">
       <div className="p-4 border-b border-kali-border">
@@ -38,22 +66,35 @@ export default function Sidebar() {
 
       <div className="flex-1 overflow-y-auto p-2">
         <div className="space-y-1">
-          {interfaces.map((iface) => (
-            <button
-              key={iface.id}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded font-mono text-[11px] transition-all group ${
-                iface.active 
-                  ? 'bg-kali-accent/20 text-kali-accent border border-kali-accent/30 shadow-[0_0_10px_rgba(0,209,255,0.1)]' 
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Radio size={14} className={iface.active ? 'text-kali-accent' : 'text-gray-600'} />
-                <span className="uppercase tracking-tight font-bold">{iface.name}</span>
-              </div>
-              <span className="text-[9px] opacity-40 group-hover:opacity-100">{iface.type}</span>
-            </button>
-          ))}
+          {interfaces.map((iface) => {
+            const isActive = status[iface.name] ?? iface.active;
+            const isLoading = loading === iface.name;
+            
+            return (
+              <button
+                key={iface.id}
+                onClick={() => toggleMonitor(iface.name)}
+                disabled={isLoading}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded font-mono text-[11px] transition-all group ${
+                  isActive 
+                    ? 'bg-kali-accent/20 text-kali-accent border border-kali-accent/30 shadow-[0_0_10px_rgba(0,209,255,0.1)]' 
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isLoading ? (
+                    <Activity size={14} className="text-kali-accent animate-spin" />
+                  ) : (
+                    <Radio size={14} className={isActive ? 'text-kali-accent' : 'text-gray-600'} />
+                  )}
+                  <span className="uppercase tracking-tight font-bold">{iface.name}</span>
+                </div>
+                <span className="text-[9px] opacity-40 group-hover:opacity-100 italic">
+                  {isLoading ? 'WORKING' : (isActive ? 'MONITOR' : 'MANAGED')}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-6 px-2">

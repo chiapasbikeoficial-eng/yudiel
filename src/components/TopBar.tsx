@@ -50,10 +50,10 @@ export default function TopBar({
           return (
             <button
               key={idx}
-              onClick={() => (id === 'scanner' || id === 'analyze') && onViewChange(id)}
+              onClick={() => onViewChange(id)}
               className={`flex flex-col items-center gap-1 p-2 rounded transition-all min-w-[64px] group ${
                 isActive ? 'text-kali-accent bg-kali-accent/10 border border-kali-border' : 'text-gray-500 hover:text-kali-accent'
-              } ${(id !== 'scanner' && id !== 'analyze') ? 'opacity-30 cursor-not-allowed' : ''}`}
+              }`}
             >
               <Icon size={20} className={isActive ? 'animate-pulse' : 'group-hover:scale-110 transition-transform'} />
               <span className="text-[9px] uppercase font-mono tracking-widest">{label}</span>
