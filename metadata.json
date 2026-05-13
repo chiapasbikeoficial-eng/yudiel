@@ -1,0 +1,6 @@
+{
+  "name": "Kali WiFi Auditor",
+  "description": "Professional WiFi security auditing dashboard with Deauth and Scanning tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
